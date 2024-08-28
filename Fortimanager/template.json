@@ -11,7 +11,7 @@
         "FortiManagerName": {
             "type": "string",
             "metadata": {
-                "description": "MedspaFTMT"
+                "description": "Name" #Input appropriate name here. 
             }
         },
         "instanceType": {
@@ -21,13 +21,13 @@
         "adminUsername": {
             "type": "string",
             "metadata": {
-                "description": "iwsadmin"
+                "description": "username" #Input username
             }
         },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
-                "description": "Vis@mondial20242024"
+                "description": "password" #Input password
             }
         },
         "FortiManagerImageVersion": {

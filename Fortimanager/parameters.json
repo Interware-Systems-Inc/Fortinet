@@ -3,13 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "FortiManagerName": {
-            "value": "MedspaFTMT"
+            "value": "please input your appliance name here"
         },
         "adminUsername": {
-            "value": "iwsadmin"
+            "value": "Usename" #please see the microsoft limitation for choosing username.
         },
         "adminPassword": {
-            "value": "Vis@mondial202042024"
+            "value": "password"
         },
         "FortiManagerImageVersion": {
             "value": "7.6.0"
@@ -27,7 +27,7 @@
             "value": "new"
         },
         "publicIPResourceGroup": {
-            "value": "FortiHoL"
+            "value": "Resource group" #please write the resource group here.
         },
         "location": {
             "value": "canadacentral"
@@ -39,7 +39,7 @@
             "value": "Fortinet-Vnet"
         },
         "vnetResourceGroup": {
-            "value": "FortiHoL"
+            "value": "Resource group" #please write the resource group here.
         },
         "vnetAddressPrefixes": {
             "value": [
