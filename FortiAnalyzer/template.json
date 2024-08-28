@@ -1,0 +1,367 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "location - same as above"
+            }
+        },
+        "FortiAnalyzerVAName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name" #Input appropriate name here.
+            }
+        },
+        "instanceType": {
+            "type": "string",
+            "defaultValue": "Standard_DS4"
+        },
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "username" #Input username
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "password" #Input password
+            }
+        },
+        "FortiAnalyzerImageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "allowedValues": [
+                "7.6.0",
+                "7.4.3",
+                "7.2.6",
+                "7.2.5",
+                "7.0.12",
+                "7.0.11",
+                "6.4.14",
+                "6.4.13",
+                "latest"
+            ],
+            "metadata": {
+                "description": "Select image version"
+            }
+        },
+        "vnetNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": [
+                "new",
+                "existing"
+            ],
+            "metadata": {
+                "description": "Identify whether to use a new or existing vnet"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure virtual network."
+            }
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group containing the virtual network - or new resource group from above (if new vnet)"
+            }
+        },
+        "vnetAddressPrefixes": {
+            "type": "array"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subnetPrefix": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Subnet 1 Prefix in CIDR notation, example: 10.2.1.0/24"
+            }
+        },
+        "FortiAnalyzerPrivateIP": {
+            "type": "string"
+        },
+        "publicIPNewOrExistingOrNone": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": [
+                "new",
+                "existing",
+                "none"
+            ],
+            "metadata": {
+                "description": "Identify if to use a public IP and if so whether it is new"
+            }
+        },
+        "publicIpAddressName": {
+            "type": "string",
+            "defaultValue": "uselessStringInCaseNone"
+        },
+        "publicIpAddressType": {
+            "defaultValue": "Static",
+            "allowedValues": [
+                "Dynamic",
+                "Static"
+            ],
+            "metadata": {
+                "description": "Type of public IP address - A 'dynamic' address will change during reboot or periods of inactivity"
+            },
+            "type": "string"
+        },
+        "publicIPResourceGroup": {
+            "type": "string",
+            "defaultValue": "uselessStringInCaseNone",
+            "metadata": {
+                "description": "Resource group to which the Public IP belongs."
+            }
+        },
+        "FortinetTags": {
+            "type": "object",
+            "defaultValue": {
+                "provider": "6EB3B02F-50E5-4A3E-8CB8-2E129258317D"
+            }
+        }
+    },
+    "variables": {
+        "vnetID": "[resourceId(parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "subnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('subnetName'))]",
+        "networkInterfaceName": "[concat(parameters('FortiAnalyzerVAName'), '-NIC0')]",
+        "NSGName": "[concat(parameters('FortiAnalyzerVAName'),'-NSG')]",
+        "publicIPID": "[resourceId(parameters('publicIPResourceGroup'), 'Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName'))]",
+        "NICwPIP": [
+            {
+                "name": "ipconfig1",
+                "properties": {
+                    "privateIPAllocationMethod": "Static",
+                    "privateIPAddress": "[parameters('FortiAnalyzerPrivateIP')]",
+                    "subnet": {
+                        "id": "[variables('SubnetRef')]"
+                    },
+                    "publicIPAddress": {
+                        "id": "[variables('publicIPID')]"
+                    }
+                }
+            }
+        ],
+        "NICwoPIP": [
+            {
+                "name": "ipconfig1",
+                "properties": {
+                    "privateIPAllocationMethod": "Static",
+                    "privateIPAddress": "[parameters('FortiAnalyzerPrivateIP')]",
+                    "subnet": {
+                        "id": "[variables('SubnetRef')]"
+                    }
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "apiVersion": "2023-07-01",
+            "name": "pid-b65f1977-3f30-4ac7-8c8c-bd8f26970290-partnercenter",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": []
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('vnetNewOrExisting'), 'new')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2023-06-01",
+            "name": "[parameters('vnetName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('vnetAddressPrefixes')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "condition": "[equals(parameters('publicIPNewOrExistingOrNone'), 'new')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2023-06-01",
+            "tags": {
+                "provider": "[toUpper(parameters('FortinetTags').provider)]"
+            },
+            "name": "[parameters('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('publicIPAddressType')]"
+            }
+        },
+        {
+            "apiVersion": "2023-06-01",
+            "tags": {
+                "provider": "[toUpper(parameters('FortinetTags').provider)]"
+            },
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('NSGName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSSHInbound",
+                        "properties": {
+                            "description": "Allow SSH In",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPInbound",
+                        "properties": {
+                            "description": "Allow 80 In",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPSInbound",
+                        "properties": {
+                            "description": "Allow 443 In",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowDevRegInbound",
+                        "properties": {
+                            "description": "Allow 514 in for device registration",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "514",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 130,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowAllOutbound",
+                        "properties": {
+                            "description": "AllowOut",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 105,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2023-06-01",
+            "dependsOn": [
+                "[parameters('vnetName')]",
+                "[parameters('publicIPAddressName')]",
+                "[variables('NSGName')]"
+            ],
+            "tags": {
+                "provider": "[toUpper(parameters('FortinetTags').provider)]"
+            },
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('networkInterfaceName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": "[if(equals(parameters('publicIPNewOrExistingOrNone'), 'none'), variables('NICwoPIP'), variables('NICwPIP'))]",
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "name": "[parameters('FortiAnalyzerVAName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2023-09-01",
+            "tags": {
+                "provider": "[toUpper(parameters('FortinetTags').provider)]"
+            },
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('networkInterfaceName')]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[parameters('FortiAnalyzerVAName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('instanceType')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "fortinet",
+                        "offer": "fortinet-fortianalyzer",
+                        "sku": "fortinet-fortianalyzer",
+                        "version": "[parameters('FortiAnalyzerImageVersion')]"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "createOption": "Empty",
+                            "diskSizeGB": 1023,
+                            "lun": 0
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+                        }
+                    ]
+                }
+            },
+            "plan": {
+                "name": "fortinet-fortianalyzer",
+                "publisher": "fortinet",
+                "product": "fortinet-fortianalyzer"
+            }
+        }
+    ]
+}

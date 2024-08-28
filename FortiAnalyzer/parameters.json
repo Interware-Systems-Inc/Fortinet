@@ -1,0 +1,59 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "FortiAnalyzerVAName": {
+            "value": "please input your appliance name here"
+        },
+        "adminUsername": {
+            "value": "Usename" #please see the microsoft limitation for choosing username.
+        },
+        "adminPassword": {
+            "value": "password"
+        },
+        "FortiAnalyzerImageVersion": {
+            "value": "7.6.0"
+        },
+        "instanceType": {
+            "value": "Standard_DS4_v2"
+        },
+        "publicIpAddressName": {
+            "value": "FAZ-PIP"
+        },
+        "publicIpAddressType": {
+            "value": "Static"
+        },
+        "publicIPNewOrExistingOrNone": {
+            "value": "new"
+        },
+        "publicIPResourceGroup": {
+            "value": "Resource group" #please write the resource group here.
+        },
+        "location": {
+            "value": "canadacentral" 
+        },
+        "vnetNewOrExisting": {
+            "value": "new"
+        },
+        "vnetName": {
+            "value": "Fortinet-Vnet" 
+        },
+        "vnetResourceGroup": {
+            "value": "resource group" #please write the resource group here.
+        },
+        "vnetAddressPrefixes": {
+            "value": [
+                "172.16.0.0/16"
+            ]
+        },
+        "subnetName": {
+            "value": "Fortinetsubnet"
+        },
+        "subnetPrefix": {
+            "value": "172.16.0.0/24"
+        },
+        "FortiAnalyzerPrivateIP": {
+            "value": "172.16.0.4"
+        }
+    }
+}
