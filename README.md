@@ -23,18 +23,22 @@ fortinet-scripts/
 │   ├── parameters.json
 │   ├── template.json
 │   └── deploy.sh
+├── fortiweb_elb/
+│   ├── parameters.json
+│   ├── template.json
+│   └── deploy.sh
 └── README.md
 ```
 
 ## Usage
 
-- **FortiAnalyzer and FortiManager Deployments:** 
+- **FortiAnalyzer, FortiManager, and FortiWeb ELB Deployments:** 
   The `deploy.sh` script in each folder is used to automate the deployment of the respective appliance using the provided JSON templates. Ensure that the `parameters.json` file is properly configured with your environment's specifics before executing the script.
 
   Example:
 
   ```bash
-  cd fortianalyzer
+  cd fortiweb_elb
   bash deploy.sh
   ```
 
