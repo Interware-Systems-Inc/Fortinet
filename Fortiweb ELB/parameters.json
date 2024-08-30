@@ -1,0 +1,96 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "fortiWebNamePrefix": {
+            "value": "FWB-IWS"
+        },
+        "imageSku": {
+            "value": "fortinet_fw-vm"
+        },
+        "imageVersion": {
+            "value": "latest"
+        },
+        "adminUsername": {
+            "value": "iwsiman"
+        },
+        "adminPassword": {
+            "value": "Vis@mondial20240"
+        },
+        "location": {
+            "value": "canadacentral"
+        },
+        "acceleratedNetworking": {
+            "value": "true"
+        },
+        "instanceType": {
+            "value": "Standard_F2s"
+        },
+        "availabilityOptions": {
+            "value": "Availability Set"
+        },
+        "fortiWebALicenseBYOL": {
+            "value": ""
+        },
+        "fortiWebBLicenseBYOL": {
+            "value": ""
+        },
+        "publicIPNewOrExistingOrNone": {
+            "value": "new"
+        },
+        "publicIPName": {
+            "value": "FWB-PIP"
+        },
+        "publicIPResourceGroup": {
+            "value": "FortiHoL"
+        },
+        "publicIPType": {
+            "value": "Static"
+        },
+        "vnetNewOrExisting": {
+            "value": "new"
+        },
+        "vnetName": {
+            "value": "FWB-IWS-vnet"
+        },
+        "vnetResourceGroup": {
+            "value": "FortiHoL"
+        },
+        "vnetAddressPrefix": {
+            "value": "172.16.0.0/20"
+        },
+        "subnet1Name": {
+            "value": "ExternalSubnet"
+        },
+        "subnet1Prefix": {
+            "value": "172.16.0.0/26"
+        },
+        "subnet1StartAddress": {
+            "value": "172.16.0.4"
+        },
+        "subnet2Name": {
+            "value": "InternalSubnet"
+        },
+        "subnet2Prefix": {
+            "value": "172.16.0.64/26"
+        },
+        "subnet2StartAddress": {
+            "value": "172.16.0.68"
+        },
+        "haTenantId": {
+            "value": ""
+        },
+        "haSubscriptionId": {
+            "value": ""
+        },
+        "haApplicationId": {
+            "value": ""
+        },
+        "haApplicationSecret": {
+            "value": "scuff99!"
+        },
+        "tagsByResource": {
+            "value": {}
+        }
+    }
+}
