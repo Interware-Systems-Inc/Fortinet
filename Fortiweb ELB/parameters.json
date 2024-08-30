@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "fortiWebNamePrefix": {
-            "value": "FWB-IWS"
+            "value": "please input your appliance name here"
         },
         "imageSku": {
             "value": "fortinet_fw-vm"
@@ -12,10 +12,10 @@
             "value": "latest"
         },
         "adminUsername": {
-            "value": "iwsiman"
+            "value": "Usename" #please see the microsoft limitation for choosing username.
         },
         "adminPassword": {
-            "value": "Vis@mondial20240"
+            "value": "input your password" #input your password here
         },
         "location": {
             "value": "canadacentral"
@@ -42,7 +42,7 @@
             "value": "FWB-PIP"
         },
         "publicIPResourceGroup": {
-            "value": "FortiHoL"
+            "value": "FortiHoL" #please write the resource group here.
         },
         "publicIPType": {
             "value": "Static"
@@ -54,7 +54,7 @@
             "value": "FWB-IWS-vnet"
         },
         "vnetResourceGroup": {
-            "value": "FortiHoL"
+            "value": "FortiHoL" #please write the resource group here.
         },
         "vnetAddressPrefix": {
             "value": "172.16.0.0/20"
@@ -87,7 +87,7 @@
             "value": ""
         },
         "haApplicationSecret": {
-            "value": "scuff99!"
+            "value": "Secret"  #please input secret here
         },
         "tagsByResource": {
             "value": {}
