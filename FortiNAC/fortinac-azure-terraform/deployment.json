@@ -1,0 +1,191 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "type": "string" },
+    "virtualNetworkName": { "type": "string" },
+    "subnetName": { "type": "string" },
+    "networkSecurityGroupName": { "type": "string" },
+    "publicIpAddressName": { "type": "string" },
+    "publicIpAddressType": { "type": "string" },
+    "publicIpAddressSku": { "type": "string" },
+    "pipDeleteOption": { "type": "string" },
+    "networkInterfaceName": { "type": "string" },
+    "virtualMachineName": { "type": "string" },
+    "virtualMachineComputerName": { "type": "string" },
+    "virtualMachineRG": { "type": "string" },
+    "virtualMachineSize": { "type": "string" },
+    "osDiskType": { "type": "string" },
+    "osDiskSizeGiB": { "type": "int" },
+    "osDiskDeleteOption": { "type": "string" },
+    "nicDeleteOption": { "type": "string" },
+    "adminUsername": { "type": "string" },
+    "adminPassword": { "type": "securestring" },
+    "enablePeriodicAssessment": { "type": "string" },
+    "imageReferenceOffer": { "type": "string" },
+    "imageReferencePublisher": { "type": "string" },
+    "imageReferenceSku": { "type": "string" },
+    "imageReferenceVersion": { "type": "string" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('virtualNetworkName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName'))]",
+      "properties": {
+        "addressPrefix": "10.0.0.0/24"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('networkSecurityGroupName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-SSH",
+            "properties": {
+              "priority": 1001,
+              "protocol": "TCP",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "22"
+            }
+          },
+          {
+            "name": "Allow-HTTPS",
+            "properties": {
+              "priority": 1002,
+              "protocol": "TCP",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "8443"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('publicIpAddressName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('publicIpAddressSku')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "[parameters('publicIpAddressType')]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('networkInterfaceName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2022-08-01",
+      "name": "[parameters('virtualMachineName')]",
+      "location": "[parameters('location')]",
+      "plan": {
+        "name": "[parameters('imageReferenceSku')]",
+        "publisher": "[parameters('imageReferencePublisher')]",
+        "product": "[parameters('imageReferenceOffer')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "osProfile": {
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "computerName": "[parameters('virtualMachineComputerName')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "offer": "[parameters('imageReferenceOffer')]",
+            "publisher": "[parameters('imageReferencePublisher')]",
+            "sku": "[parameters('imageReferenceSku')]",
+            "version": "[parameters('imageReferenceVersion')]"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "diskSizeGB": "[parameters('osDiskSizeGiB')]",
+            "managedDisk": {
+              "storageAccountType": "[parameters('osDiskType')]"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "publicIp": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))).ipAddress]"
+    },
+    "virtualMachineId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
+    }
+  }
+}
