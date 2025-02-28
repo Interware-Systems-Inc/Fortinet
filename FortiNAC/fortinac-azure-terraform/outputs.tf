@@ -1,7 +1,11 @@
-output "fortinac_public_ip" {
-  value = try(jsondecode(azurerm_resource_group_template_deployment.fortinac.output_content)["publicIp"], "No IP Found")
+output "fortinac_public_ips" {
+  value = azurerm_public_ip.fortinac_public_ip[*].ip_address
 }
 
-output "virtual_machine_id" {
-  value = try(jsondecode(azurerm_resource_group_template_deployment.fortinac.output_content)["virtualMachineId"], "No VM ID Found")
+output "fortinac_management_ips" {
+  value = azurerm_network_interface.fortinac_mgmt_nic[*].private_ip_address
+}
+
+output "fortinac_internal_ips" {
+  value = azurerm_network_interface.fortinac_internal_nic[*].private_ip_address
 }

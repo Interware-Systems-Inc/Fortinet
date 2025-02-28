@@ -5,12 +5,15 @@
     "location": { "type": "string" },
     "virtualNetworkName": { "type": "string" },
     "subnetName": { "type": "string" },
+    "subnetName2": { "type": "string" },
     "networkSecurityGroupName": { "type": "string" },
+    "networkSecurityGroupName2": { "type": "string" },
     "publicIpAddressName": { "type": "string" },
     "publicIpAddressType": { "type": "string" },
     "publicIpAddressSku": { "type": "string" },
     "pipDeleteOption": { "type": "string" },
     "networkInterfaceName": { "type": "string" },
+    "networkInterfaceName2": { "type": "string" },
     "virtualMachineName": { "type": "string" },
     "virtualMachineComputerName": { "type": "string" },
     "virtualMachineRG": { "type": "string" },
@@ -25,9 +28,26 @@
     "imageReferenceOffer": { "type": "string" },
     "imageReferencePublisher": { "type": "string" },
     "imageReferenceSku": { "type": "string" },
-    "imageReferenceVersion": { "type": "string" }
+    "imageReferenceVersion": { "type": "string" },
+    "bootDiagnosticsStorageAccountName": { "type": "string" },
+    "routeTableName": { "type": "string" },
+    "routeAddressPrefix": { "type": "string" },
+    "routeNextHopIp": { "type": "string" },
+    "customScriptFileUri": { "type": "string" },
+    "allowedGuiSourcePrefix": { "type": "string" }
   },
   "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-06-01",
+      "name": "[parameters('bootDiagnosticsStorageAccountName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {}
+    },
     {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2022-09-01",
@@ -35,9 +55,7 @@
       "location": "[parameters('location')]",
       "properties": {
         "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/16"
-          ]
+          "addressPrefixes": [ "10.0.0.0/16" ]
         }
       }
     },
@@ -50,6 +68,39 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('routeTableName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "routes": [
+          {
+            "name": "route-to-appliance",
+            "properties": {
+              "addressPrefix": "[parameters('routeAddressPrefix')]",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "[parameters('routeNextHopIp')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName2'))]",
+      "properties": {
+        "addressPrefix": "10.0.1.0/24",
+        "routeTable": {
+          "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
       ]
     },
     {
@@ -83,6 +134,42 @@
               "sourcePortRange": "*",
               "destinationAddressPrefix": "*",
               "destinationPortRange": "8443"
+            }
+          },
+          {
+            "name": "Allow-GUI",
+            "properties": {
+              "priority": 1003,
+              "protocol": "TCP",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "[parameters('allowedGuiSourcePrefix')]",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "8443"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('networkSecurityGroupName2')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-Restricted",
+            "properties": {
+              "priority": 1001,
+              "protocol": "TCP",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "0-65535"
             }
           }
         ]
@@ -125,10 +212,36 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
         "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]",
         "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('networkInterfaceName2')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "10.0.1.4",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName2'))]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName2'))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName2'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName2'))]"
       ]
     },
     {
@@ -168,14 +281,52 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+              "properties": {
+                "primary": true
+              }
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName2'))]",
+              "properties": {
+                "primary": false
+              }
             }
           ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('https://', parameters('bootDiagnosticsStorageAccountName'), '.blob.core.windows.net')]"
+          }
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName2'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('bootDiagnosticsStorageAccountName'))]"
       ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('virtualMachineName'), '/CustomScriptExtension')]",
+      "apiVersion": "2022-08-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.1",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[parameters('customScriptFileUri')]"
+          ],
+          "commandToExecute": "sh configure-fortinac.sh"
+        }
+      }
     }
   ],
   "outputs": {

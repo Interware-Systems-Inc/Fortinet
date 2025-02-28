@@ -1,1 +1,16 @@
+# Ignore Terraform State Files
+*.tfstate
+*.tfstate.*
+*.backup
 .terraform/
+.terraform.lock.hcl
+
+# Ignore Variables That May Contain Sensitive Data
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+
+# Ignore SSH Keys or Credentials (if any)
+*.pem
+*.key
+*.crt
