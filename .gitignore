@@ -14,3 +14,10 @@ terraform.tfvars
 *.pem
 *.key
 *.crt
+# Ignore Terraform State Files
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate
+*.tfstate.*
+*.backup
+.terraform.lock.hcl
