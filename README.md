@@ -27,6 +27,17 @@ fortinet-scripts/
 │   ├── parameters.json
 │   ├── template.json
 │   └── deploy.sh
+├── fortinac/
+│   ├── README.md
+│   ├── fortinac-azure-terraform/
+│   │   ├── .gitignore
+│   │   ├── README.md
+│   │   ├── cloud-init.tpl
+│   │   ├── configure-fortinac.sh
+│   │   ├── deployment.json
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   ├── variables.tf
 └── README.md
 ```
 
